@@ -1,0 +1,26 @@
+{
+  "skill_name": "pblog",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I just finished implementing the pblog skill for Claude Code. Can you log that for me?",
+      "expected_output": "Should detect we're in DS-PB-LOGGER repo (via .pblog if exists, or context), auto-select 'PB Logger' project, include --github flag since it's code work, and log with a concise description",
+      "files": [],
+      "context": "Currently in /Users/AIUW003/Projects/Amway/DSA/DS-PB-LOGGER directory with a .pblog file containing project = \"PB Logger\""
+    },
+    {
+      "id": 1,
+      "prompt": "log this morning's work - closed a bunch of dependabot PRs across all the repos",
+      "expected_output": "Should prompt for project (no .pblog or clear context), use --match 'dependabot' flag for cross-repo search, create concise work description",
+      "files": [],
+      "context": "General work session, not in a specific repo directory"
+    },
+    {
+      "id": 2,
+      "prompt": "log what we just did",
+      "expected_output": "Should infer work from conversation context (implementing pblog skill), select PB Logger project from context, include --github flag, log with description derived from recent work",
+      "files": [],
+      "context": "Just finished a coding session working on pblog skill"
+    }
+  ]
+}
