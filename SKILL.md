@@ -25,27 +25,67 @@ The CLI will:
 - Show error if no `.pblog` found in git repo
 - Prompt for project if outside git repo
 
-### With sub-bullets
+### With sub-bullets (nested details)
 
-Add indented sub-bullets to an entry using `--details`:
+Add indented sub-bullets to an entry using `--details`. Supports **multi-level nesting** using 4-space indentation (0, 4, 8, 12... spaces).
 
+**Simple flat list:**
 ```bash
 pblog log "summary line" --details "item 1
 item 2
 item 3"
 ```
 
-Or with heredoc for better formatting:
+**Two-level nesting:**
 ```bash
 pblog log "summary line" --details "$(cat <<'EOF'
-item 1
-item 2
-item 3
+top-level item 1
+    nested under item 1
+    also nested under item 1
+top-level item 2
 EOF
 )"
 ```
 
-This creates an entry with the summary as the top-level bullet and details as indented sub-bullets (4 spaces).
+**Multi-level hierarchical structure (3-4 levels deep):**
+```bash
+pblog log "designed phased refactor plan" --details "$(cat <<'EOF'
+Phase 1: migrate PR caching to structured table
+    key improvements
+        enables efficient per-PR updates/deletes
+        fixes stale cache after merge operations
+    implementation notes
+        rename dependabot_prs table to pull_requests
+        add proper indexes on foreign keys
+Phase 2: add indexes on remaining tables
+    improves invalidation performance
+    reduces full table scans
+Phase 3: fix cascade invalidation (deferred)
+EOF
+)"
+```
+
+**Indentation rules:**
+- Use **0, 4, 8, 12, 16...** spaces (multiples of 4)
+- Tabs are automatically converted to 4 spaces
+- Leading bullet markers (`-`, `*`) are automatically stripped
+- Invalid indentation (2, 3, 6 spaces, etc.) shows a clear error with line number
+
+This creates nested bullet structures in your log:
+```markdown
+- designed phased refactor plan
+    - Phase 1: migrate PR caching to structured table
+        - key improvements
+            - enables efficient per-PR updates/deletes
+            - fixes stale cache after merge operations
+        - implementation notes
+            - rename dependabot_prs table to pull_requests
+            - add proper indexes on foreign keys
+    - Phase 2: add indexes on remaining tables
+        - improves invalidation performance
+        - reduces full table scans
+    - Phase 3: fix cascade invalidation (deferred)
+```
 
 ### With local git commits
 ```bash
@@ -389,22 +429,47 @@ User: "oh I forgot to log yesterday's work. I added the new charts to the dashbo
 pblog log "added revenue and engagement charts" --date 2026-03-01
 ```
 
-### Example 5: Summary with sub-bullets
+### Example 5: Multi-level nested sub-bullets
 
-User: "log today's work - I evaluated that awesome-claude-skills repo"
+User: "log today's architecture analysis work"
 
 ```bash
-pblog log "evaluated awesome-claude-skills repo (https://github.com/karanb192/awesome-claude-skills)" --details "no new useful skills found; already running all verified content
-only gap: Office doc skills (docx/xlsx/pptx), declined as not relevant"
+pblog log "analyzed cache architecture and designed refactor plan" --details "$(cat <<'EOF'
+root cause analysis
+    PR caching uses two conflicting approaches
+        dependabot_prs table exists but never populated (dead code)
+        actual implementation stores 21KB JSON blobs in generic cache_metadata table
+    when PRs merge, only clear_dependabot_prs() called, leaving JSON stale
+designed phased refactor plan
+    Phase 1: migrate to structured pull_requests table
+        enables efficient per-PR updates/deletes
+        fixes stale cache after merge operations
+    Phase 2: add indexes on foreign key columns
+        improves invalidation performance
+    Phase 3: fix cascade invalidation (deferred)
+decision: implement Phases 1+2 together (low risk, high value)
+EOF
+)"
 ```
 
 This creates:
 ```markdown
-## 2026-04-09
+## 2026-04-20
 
-- evaluated awesome-claude-skills repo (https://github.com/karanb192/awesome-claude-skills)
-    - no new useful skills found; already running all verified content
-    - only gap: Office doc skills (docx/xlsx/pptx), declined as not relevant
+- analyzed cache architecture and designed refactor plan
+    - root cause analysis
+        - PR caching uses two conflicting approaches
+            - dependabot_prs table exists but never populated (dead code)
+            - actual implementation stores 21KB JSON blobs in generic cache_metadata table
+        - when PRs merge, only clear_dependabot_prs() called, leaving JSON stale
+    - designed phased refactor plan
+        - Phase 1: migrate to structured pull_requests table
+            - enables efficient per-PR updates/deletes
+            - fixes stale cache after merge operations
+        - Phase 2: add indexes on foreign key columns
+            - improves invalidation performance
+        - Phase 3: fix cascade invalidation (deferred)
+    - decision: implement Phases 1+2 together (low risk, high value)
 ```
 
 ## Technical Notes
